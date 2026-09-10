@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="il2cpp">
+      <UniqueIdentifier>{8400bdb0-b299-4e59-a202-38b7e1d4ba1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IL2CppApi">
+      <UniqueIdentifier>{9adadc8b-3c59-42dc-a4ad-ecc8539eda1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IL2CppApi\Wrappers">
+      <UniqueIdentifier>{3a0a388f-d88d-421b-8c3c-88066c97afeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IL2CppApi\Native">
+      <UniqueIdentifier>{8b99bddd-d482-4e75-9f5a-9e344cb6a7d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IL2CppApi\Helpers">
+      <UniqueIdentifier>{3bffc439-0c2c-484e-bbc4-57746266c665}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-metadata.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-config.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-config-platforms.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-api-types.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-blob.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-runtime-metadata.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-class-internals.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-object-internals.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-string-types.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp-tabledefs.h">
+      <Filter>il2cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="il2cpp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2cppNativeApi.h">
+      <Filter>IL2CppApi\Native</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppDumper.h">
+      <Filter>IL2CppApi</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppClassWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppMethodInfoWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppFieldInfoWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppPropertyInfoWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppTypeWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppImageWrapper.h">
+      <Filter>IL2CppApi\Wrappers</Filter>
+    </ClInclude>
+    <ClInclude Include="Extensions.h">
+      <Filter>IL2CppApi\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="IL2CppNativeHelper.h">
+      <Filter>IL2CppApi\Helpers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AssemblyInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IL2cppNativeApi.cpp">
+      <Filter>IL2CppApi\Native</Filter>
+    </ClCompile>
+    <ClCompile Include="IL2CppDumper.cpp">
+      <Filter>IL2CppApi</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="app.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

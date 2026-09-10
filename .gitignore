@@ -1,0 +1,36 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+Win32/
+
+# Visual Studio and Rider local state
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.iml
+*.DotSettings.user
+
+# C++ intermediate files and caches
+ipch/
+*.VC.db
+*.VC.VC.opendb
+*.sdf
+*.opensdf
+*.aps
+*.ncb
+*.pch
+*.pdb
+*.obj
+*.ilk
+*.idb
+*.iobj
+*.ipdb
+*.tlog
+*.lastbuildstate
