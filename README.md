@@ -19,3 +19,9 @@ Blank decks use the game's defaults. Blank locations and seed use random values.
 Open `SnapLocalGameLab.sln` in Visual Studio 2022 with the .NET desktop and C++ desktop workloads, C++/CLI support, the v143 toolset, the .NET Framework 4.8 targeting pack, and a Windows 10 SDK.
 
 Build `Release | x64`, then run `SnapLocalGameLab.Launcher\bin\Release\SnapLocalGameLab.Launcher.exe` with the generated DLLs beside it.
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).
+
+Bundled third-party code retains its original licenses and copyright notices.
