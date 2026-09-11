@@ -10,6 +10,7 @@ namespace SnapLocalGameLab.Core
     {
         public static string Start(LocalGameOptions options)
         {
+            options.ValidateSnapping();
             using (var api = new GameApi())
             {
                 var managerType = api.Type("CubeUnity.App.State", "GameManager");
@@ -28,7 +29,7 @@ namespace SnapLocalGameLab.Core
                     || !parameters[2].Name.Contains("LimitedEventDef") || parameters[3].Name != "System.String")
                     throw new NotSupportedException("Unexpected GameManager.Initialize signature.");
                 var load = api.Method(sceneType, "ForceLoadPrimaryScene", 3);
-                if (options.Seed.HasValue) SeedOverride.Prepare(api);
+                LocalGameInitialization.Prepare(api, options.Seed.HasValue);
                 api.Runtime.Invoke(initialize, manager, A.Value(0), A.Value(league),
                     api.Default(parameters[2]), A.Ref(api.Runtime.String("Play")));
                 api.Call(managerType, manager, "set_DebugOverrideSelectedDeck", A.Ref(playerDeck));
@@ -36,13 +37,26 @@ namespace SnapLocalGameLab.Core
                 api.Call(managerType, manager, "set_DebugStartingLocations", A.Ref(locations));
                 api.Call(managerType, manager, "set_DebugNoPostGameRewards", A.Value(true));
                 api.Call(managerType, manager, "set_DebugIgnoreNewCardEncountered", A.Value(options.SkipNewCardPrompts));
-                SeedOverride.Arm(manager, options.Seed);
+                LocalGameInitialization.Arm(manager, options);
                 try
                 {
                     api.Runtime.Invoke(load, sceneManager, A.Ref(api.Runtime.String("Game")), A.Value(1), A.Ref(IntPtr.Zero));
                 }
-                catch { SeedOverride.Cancel(); throw; }
+                catch { LocalGameInitialization.Cancel(); throw; }
                 return "Local " + options.League + " loading.";
+            }
+        }
+
+        public static string ReturnToMainScreen()
+        {
+            using (var api = new GameApi())
+            {
+                var sceneType = api.Type("CubeUnity.App.Scene", "CubeSceneManager");
+                var sceneManager = api.Manager(sceneType);
+                LocalGameInitialization.Cancel();
+                api.Call(sceneType, sceneManager, "ForceLoadPrimaryScene",
+                    A.Ref(api.Runtime.String("Play")), A.Value(1), A.Ref(IntPtr.Zero));
+                return "Returning to main screen.";
             }
         }
 

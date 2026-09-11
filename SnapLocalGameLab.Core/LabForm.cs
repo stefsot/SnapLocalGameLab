@@ -14,13 +14,18 @@ namespace SnapLocalGameLab.Core
         private readonly ComboBox _league = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly ComboBox _strength = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly CheckBox _skip = new CheckBox { Text = "Skip new-card prompts", Checked = true, AutoSize = true };
+        private readonly CheckBox _snapping = new CheckBox { Text = "Enable snapping", Checked = true, AutoSize = true };
+        private readonly NumericUpDown _startingCubes = Number(1, 1000000, 1);
+        private readonly NumericUpDown _maximumCubes = Number(1, 1000000, 8);
+        private readonly NumericUpDown _snapsPerPlayer = Number(1, 4, 1);
+        private readonly CheckBox _doubleFinalTurn = new CheckBox { Text = "Double stakes on the final turn", Checked = true, AutoSize = true };
         private readonly TextBox _log = new TextBox { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Height = 130 };
         private readonly FlowLayoutPanel _buttons = new FlowLayoutPanel { AutoSize = true };
 
         public LabForm()
         {
             Text = "Snap Local Game Lab";
-            ClientSize = new Size(710, 720);
+            ClientSize = new Size(710, 880);
             MinimumSize = new Size(650, 650);
             var layout = new TableLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, ColumnCount = 2, Padding = new Padding(12) };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 165));
@@ -36,14 +41,23 @@ namespace SnapLocalGameLab.Core
             AddRow(layout, "Locations (optional)", _locations);
             AddRow(layout, "Seed (blank = random)", _seed);
             AddRow(layout, "", _skip);
-            AddRow(layout, "AI preset (not applied)", _strength);
-            AddRow(layout, "", new Label { Text = "Blank decks use game defaults. Blank locations = random; otherwise enter three comma-separated internal IDs.\r\nStart from the home screen.", AutoSize = true });
+            AddRow(layout, "AI preset", _strength);
+            AddRow(layout, "Next game's snap rules", _snapping);
+            AddRow(layout, "Starting cubes", _startingCubes);
+            AddRow(layout, "Maximum cubes", _maximumCubes);
+            AddRow(layout, "Snaps per player", _snapsPerPlayer);
+            AddRow(layout, "", _doubleFinalTurn);
+            AddRow(layout, "", new Label { Text = "Blank decks use game defaults. Blank locations = random, otherwise enter three comma separated location ids.", AutoSize = true });
             AddButton("Start local game", StartGame);
+            AddButton("Return to main screen", () => Run(LocalGameService.ReturnToMainScreen));
             AddButton("Draw card", () => Run(() => LocalGameControls.Send("DrawCardCheatRequest")));
             AddButton("+2 energy", () => Run(() => LocalGameControls.Send("AddEnergyCheatRequest", amount: 2)));
             AddRow(layout, "", _buttons);
             AddRow(layout, "Status", _log);
         }
+
+        private static NumericUpDown Number(int minimum, int maximum, int value) =>
+            new NumericUpDown { Minimum = minimum, Maximum = maximum, Value = value, ThousandsSeparator = true };
 
         private static void AddRow(TableLayoutPanel layout, string label, Control control)
         {
@@ -79,7 +93,10 @@ namespace SnapLocalGameLab.Core
             var options = new LocalGameOptions
             {
                 League = (string)_league.SelectedItem, PlayerDeck = _player.Text, AiDeck = _aiDeck.Text,
-                Locations = _locations.Text, Seed = seed, SkipNewCardPrompts = _skip.Checked
+                Locations = _locations.Text, Seed = seed, SkipNewCardPrompts = _skip.Checked,
+                EnableSnapping = _snapping.Checked, StartingCubes = (int)_startingCubes.Value,
+                MaximumCubes = (int)_maximumCubes.Value, SnapsPerPlayer = (int)_snapsPerPlayer.Value,
+                DoubleFinalTurn = _doubleFinalTurn.Checked
             };
             return Run(() => LocalGameService.Start(options));
         }

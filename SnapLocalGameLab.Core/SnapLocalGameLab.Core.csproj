@@ -44,7 +44,8 @@
     <Compile Include="LocalGameControls.cs" />
     <Compile Include="LocalGameOptions.cs" />
     <Compile Include="LocalGameService.cs" />
-    <Compile Include="SeedOverride.cs" />
+    <Compile Include="LocalGameInitialization.cs" />
+    <Compile Include="SnapConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IL2CppApi\IL2CppApi.vcxproj">
