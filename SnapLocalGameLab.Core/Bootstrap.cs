@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -9,15 +7,6 @@ namespace SnapLocalGameLab.Core
     public static class Bootstrap
     {
         private static Thread _window;
-        static Bootstrap()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-            {
-                var path = Path.Combine(Path.GetDirectoryName(typeof(Bootstrap).Assembly.Location),
-                    new AssemblyName(args.Name).Name + ".dll");
-                return File.Exists(path) ? Assembly.LoadFrom(path) : null;
-            };
-        }
 
         public static void Init(string settings)
         {

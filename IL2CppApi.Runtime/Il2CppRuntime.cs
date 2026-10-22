@@ -188,6 +188,7 @@ namespace IL2CppApi.Runtime
             return result; // Caller invokes the matching .ctor, including Unity's native initialization.
         }
 
+        public IntPtr Retain(IntPtr value) { CheckThread(); return Keep(value); }
         public IntPtr TypeObject(IL2CppClassWrapper type) { CheckThread(); return Keep(_api.TypeObject(type.Type.Ptr)); }
         public IntPtr String(string text) { CheckThread(); return Keep(_api.NewString(text, text.Length)); }
         public string StringValue(IntPtr value)

@@ -20,6 +20,14 @@ namespace SnapLocalGameLab.Core
             api.Call(configType, config, "set_CannotRaiseStakes", A.Value(!options.EnableSnapping));
             api.Call(configType, config, "set_StartingCubeValue", A.Value(options.StartingCubes));
             api.Call(configType, config, "set_MaxCubeValue", A.Value(options.MaximumCubes));
+            if (!string.IsNullOrWhiteSpace(options.AiPreset))
+            {
+                var id = api.EnumValue(api.Type("CubeDef", "AiConfigDefId"), options.AiPreset);
+                if (api.Call(api.Type("CubeGame", "AiConfigDefList"), IntPtr.Zero, "Find", A.Value(id)) == IntPtr.Zero)
+                    throw new ArgumentException("The client does not contain the AI preset " + options.AiPreset + ".");
+                api.Call(configType, config, "set_AiConfigDefId", A.Value(id));
+            }
+            AugmentConfiguration.Enable(api, config);
             return config;
         }
     }

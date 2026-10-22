@@ -36,6 +36,12 @@
     <Reference Include="System.Windows.Forms" />
     <Compile Include="Bootstrap.cs" />
     <Compile Include="GameApi.cs" />
+    <Compile Include="GameCatalog.cs" />
+    <Compile Include="AugmentConfiguration.cs" />
+    <Compile Include="DeckEditorForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LocalPresentation.cs" />
     <Compile Include="GameThread.cs" />
     <Compile Include="HookManager.cs" />
     <Compile Include="LabForm.cs">

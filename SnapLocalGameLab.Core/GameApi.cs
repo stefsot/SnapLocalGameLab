@@ -51,6 +51,27 @@ namespace SnapLocalGameLab.Core
             return value;
         }
 
+        public IntPtr[] References(IntPtr collection)
+        {
+            if (collection == IntPtr.Zero) return Array.Empty<IntPtr>();
+            var type = Type("System.Collections", "ArrayList");
+            var copy = Runtime.NewObject(type);
+            Runtime.Invoke(Runtime.Method(type, ".ctor", false, "System.Collections.ICollection"), copy,
+                Il2CppArgument.Ref(collection));
+            return Runtime.ReferenceArray(Call(type, copy, "ToArray"));
+        }
+
+        public IntPtr[] FindObjects(IL2CppClassWrapper type)
+        {
+            var find = Runtime.Method(Type("UnityEngine", "Object"), "FindObjectsOfType", true, "System.Type");
+            return Runtime.ReferenceArray(Runtime.Invoke(find, IntPtr.Zero,
+                Il2CppArgument.Ref(Runtime.TypeObject(type))));
+        }
+
+        public IntPtr Bytes(byte[] bytes) => Runtime.Invoke(
+            Runtime.Method(Type("System", "Convert"), "FromBase64String", true, "System.String"), IntPtr.Zero,
+            Il2CppArgument.Ref(Runtime.String(Convert.ToBase64String(bytes))));
+
         public IntPtr Manager(IL2CppClassWrapper type)
         {
             var containerType = Type("CubeUnity.Infra.DependencyInjection", "DependencyContainer");
