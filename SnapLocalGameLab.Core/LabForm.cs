@@ -19,7 +19,7 @@ namespace SnapLocalGameLab.Core
         private readonly DeckInput _player;
         private readonly DeckInput _aiDeck;
         private readonly CheckBox _overrideLocations = Check("Override starting locations");
-        private readonly ComboBox[] _locations = { Picker(), Picker(), Picker() };
+        private readonly SearchComboBox[] _locations = { Picker(), Picker(), Picker() };
         private readonly ComboBox _seedMode = Choice("Random", "Integer seed (legacy)", "16-byte key");
         private readonly TextBox _seed = new TextBox();
         private readonly Label _seedHint = Note("");
@@ -34,20 +34,20 @@ namespace SnapLocalGameLab.Core
         private readonly ComboBox _drawTarget = Choice("Me", "Opponent", "Both");
         private readonly ComboBox _energyTarget = Choice("Me", "Opponent", "Both");
         private readonly NumericUpDown _energy = Number(-99, 99, 2);
-        private readonly ComboBox _drawCard = Picker();
+        private readonly SearchComboBox _drawCard = Picker();
         private readonly ComboBox _spawnTarget = Choice("Me", "Opponent", "Both");
-        private readonly ComboBox _spawnCard = Picker();
+        private readonly SearchComboBox _spawnCard = Picker();
         private readonly ComboBox _spawnDestination = Choice("Hand", "Deck", "Location");
         private readonly ComboBox _spawnLocation = Choice("Left (1)", "Middle (2)", "Right (3)");
         private readonly ComboBox _cleanupTarget = Choice("Both", "Me", "Opponent");
-        private readonly ComboBox _matchCard = Picker();
-        private readonly ComboBox _augment = Picker();
+        private readonly SearchComboBox _matchCard = Picker();
+        private readonly SearchComboBox _augment = Picker();
         private readonly CheckBox _playerAppearance = Check("Override my appearance");
         private readonly CheckBox _opponentAppearance = Check("Override opponent appearance");
         private readonly TextBox _playerName = new TextBox { MaxLength = 64 };
         private readonly TextBox _opponentName = new TextBox { MaxLength = 64 };
-        private readonly ComboBox _playerAvatar = Picker();
-        private readonly ComboBox _opponentAvatar = Picker();
+        private readonly SearchComboBox _playerAvatar = Picker();
+        private readonly SearchComboBox _opponentAvatar = Picker();
         private readonly Timer _messages = new Timer { Interval = 1000 };
         private GameCatalog _catalog;
         private bool _busy;
@@ -375,19 +375,7 @@ namespace SnapLocalGameLab.Core
             return selected;
         }
 
-        private static void Fill(ComboBox combo, object[] items)
-        {
-            var previous = combo.SelectedItem?.ToString();
-            combo.BeginUpdate();
-            try
-            {
-                combo.Items.Clear();
-                combo.Items.AddRange(items);
-                combo.SelectedItem = items.FirstOrDefault(item => item.ToString() == previous);
-                if (combo.SelectedIndex < 0) combo.Text = "";
-            }
-            finally { combo.EndUpdate(); }
-        }
+        private static void Fill(SearchComboBox combo, object[] items) => combo.SetItems(items);
 
         private TableLayoutPanel Page(string title)
         {
@@ -453,11 +441,7 @@ namespace SnapLocalGameLab.Core
             return combo;
         }
 
-        private static ComboBox Picker() => new ComboBox
-        {
-            DropDownStyle = ComboBoxStyle.DropDown, AutoCompleteMode = AutoCompleteMode.SuggestAppend,
-            AutoCompleteSource = AutoCompleteSource.ListItems, IntegralHeight = false, DropDownHeight = 300
-        };
+        private static SearchComboBox Picker() => new SearchComboBox();
 
         private static CheckBox Check(string text, bool value = false) => new CheckBox { Text = text, Checked = value, AutoSize = true };
         private static Label Note(string text) => new Label { Text = text, AutoSize = true, MaximumSize = new Size(600, 0) };
