@@ -88,6 +88,24 @@ namespace SnapLocalGameLab.Core
             return "Spawn " + cardId + " in " + place + " queued for " + target + ".";
         });
 
+        public static string ChangeLocation(int locationIndex, string locationId) => WithMatch(match =>
+        {
+            if (locationIndex < 0 || locationIndex > 2)
+                throw new ArgumentException("Choose one of the three locations.");
+            if (string.IsNullOrWhiteSpace(locationId)) throw new ArgumentException("Select a location.");
+            var api = match.Api;
+            var def = api.Call(api.Type("CubeDef", "LocationDefList"), IntPtr.Zero, "Find",
+                A.Value(api.Runtime.String(locationId)), A.Value(true));
+            if (def == IntPtr.Zero) throw new ArgumentException("Unknown location: " + locationId);
+            var id = api.Value<IntPtr>(api.Type("CubeDef", "LocationDef"), def, "get_LocationDefId");
+            match.Send("SpawnLocationCheatRequest", (type, request) =>
+            {
+                api.Call(type, request, "set_LocationDefId", A.Value(id));
+                api.Call(type, request, "set_LocationIndex", A.Value(locationIndex));
+            });
+            return "Change location " + (locationIndex + 1) + " to " + locationId + " queued.";
+        });
+
         public static string Cleanup(CleanupTarget cleanup, PlayerTarget target) => WithMatch(match =>
         {
             var api = match.Api;

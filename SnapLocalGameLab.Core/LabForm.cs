@@ -34,6 +34,8 @@ namespace SnapLocalGameLab.Core
         private readonly ComboBox _drawTarget = Choice("Me", "Opponent", "Both");
         private readonly ComboBox _energyTarget = Choice("Me", "Opponent", "Both");
         private readonly NumericUpDown _energy = Number(-99, 99, 2);
+        private readonly ComboBox _locationSlot = Choice("Left (1)", "Middle (2)", "Right (3)");
+        private readonly SearchComboBox _newLocation = Picker();
         private readonly SearchComboBox _drawCard = Picker();
         private readonly ComboBox _spawnTarget = Choice("Me", "Opponent", "Both");
         private readonly SearchComboBox _spawnCard = Picker();
@@ -174,6 +176,17 @@ namespace SnapLocalGameLab.Core
                 return Run(() => LocalGameControls.AddEnergy(target, amount));
             });
             Row(energySection, "", energy);
+            var locationSection = Section(layout, "Change a location");
+            Row(locationSection, "Board slot", _locationSlot);
+            Row(locationSection, "New location", _newLocation);
+            var locations = new FlowLayoutPanel { AutoSize = true };
+            Button(locations, "Change location", () =>
+            {
+                var index = _locationSlot.SelectedIndex;
+                var location = Selected<CatalogItem>(_newLocation, "a location");
+                return Run(() => LocalGameControls.ChangeLocation(index, location.Id));
+            });
+            Row(locationSection, "", locations);
             var cleanupSection = Section(layout, "Clear cards");
             Row(cleanupSection, "Player", _cleanupTarget);
             var cleanup = new FlowLayoutPanel { AutoSize = true };
@@ -282,6 +295,7 @@ namespace SnapLocalGameLab.Core
                 _catalog = await GameThread.Run(GameCatalog.Load);
                 if (IsDisposed) return;
                 foreach (var location in _locations) Fill(location, _catalog.Locations);
+                Fill(_newLocation, _catalog.Locations);
                 Fill(_drawCard, _catalog.Cards);
                 Fill(_spawnCard, _catalog.Cards);
                 Fill(_augment, _catalog.Augments);
