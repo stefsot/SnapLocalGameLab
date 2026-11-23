@@ -33,6 +33,7 @@ namespace SnapLocalGameLab.Core
         [ThreadStatic] private static IntPtr _activeKey;
 
         public static bool TryGetMessage(out string message) => Messages.TryDequeue(out message);
+        public static void Report(string message) => Messages.Enqueue(message);
 
         public static void Prepare(GameApi api, bool useSeed)
         {
@@ -43,7 +44,7 @@ namespace SnapLocalGameLab.Core
             if (useSeed && _initRand == null) PrepareSeed(api, game);
             if (_initConfig == null)
                 _initConfig = HookManager.CreateHook<InitConfigDelegate>(api.Method(game, "InitConfigInternal", 0).MethodPointer,
-                    InitConfig, "Local snap configuration");
+                    InitConfig, "Local game configuration");
             if (_create == null)
                 _create = HookManager.CreateHook<CreateDelegate>(api.Method(manager, "CreateLocalGame", 0).MethodPointer,
                     Create, "Local creation scope");
@@ -63,7 +64,7 @@ namespace SnapLocalGameLab.Core
             _initRand = HookManager.CreateHook<InitRandDelegate>(init.MethodPointer, InitRand, "Local random seed/key");
         }
 
-        public static void Arm(IntPtr manager, LocalGameOptions options)
+        public static void Arm(IntPtr manager, IntPtr config, LocalGameOptions options)
         {
             Cancel();
             var api = new GameApi();
@@ -73,10 +74,9 @@ namespace SnapLocalGameLab.Core
                 var current = api.Call(managerType, manager, "get_CurrentGame");
                 if (!api.Runtime.IsInstance(current, api.Type("CubeUnity.App.State", "LocalGame"))
                     || api.Value<bool>(managerType, manager, "get_IsReplay"))
-                    throw new InvalidOperationException("Snap settings can only be applied to a new local game.");
+                    throw new InvalidOperationException("Game settings can only be applied to a new local game.");
                 var state = api.Call(managerType, manager, "get_GameState");
-                var source = api.Call(managerType, manager, "get_GameConfigDef");
-                var config = SnapConfiguration.Create(api, source, options);
+                api.Runtime.Retain(config);
                 var presentation = new LocalPresentation(api, options.Presentation);
                 var key = options.RandomKey == null ? IntPtr.Zero : api.Bytes(options.RandomKey);
                 api.Runtime.WriteReference(state, _configField, config);

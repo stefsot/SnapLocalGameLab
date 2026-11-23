@@ -26,6 +26,7 @@ namespace SnapLocalGameLab.Core
         public CatalogItem[] Cards;
         public CatalogItem[] Locations;
         public CatalogItem[] Augments;
+        public CatalogItem[] Champions;
         public AvatarChoice[] Avatars;
 
         public static GameCatalog Load()
@@ -36,6 +37,8 @@ namespace SnapLocalGameLab.Core
                 var locations = ReadDefs(api, "Location");
                 var character = api.EnumValue(api.Type("CubeDef", "CardType"), "Character");
                 var augment = api.EnumValue(api.Type("CubeDef", "CardType"), "Augment");
+                var championConfig = SnapConfiguration.Find(api, api.EnumValue(api.Type("CubeDef", "LeagueDefId"), "ChampionArena"));
+                var champions = ChampionArenaSetup.ReadChampions(api, championConfig);
                 var avatars = cards.Where(c => c.Kind == character).Select(c => new AvatarChoice
                 {
                     CardId = c.Id, Label = "Card: " + c
@@ -52,6 +55,7 @@ namespace SnapLocalGameLab.Core
                 {
                     Cards = cards.Where(c => c.Kind != augment).ToArray(), Locations = locations,
                     Augments = cards.Where(c => c.Kind == augment).ToArray(),
+                    Champions = cards.Where(c => champions.Contains(c.Id)).ToArray(),
                     Avatars = avatars.OrderBy(a => a.Label, StringComparer.OrdinalIgnoreCase).ToArray()
                 };
             }
@@ -88,5 +92,17 @@ namespace SnapLocalGameLab.Core
 
         public static IntPtr CardId(GameApi api, string id) =>
             api.Value<IntPtr>(api.Type("CubeDef", "CardDef"), FindCard(api, id), "get_CardDefId");
+
+        public static IntPtr LocationId(GameApi api, string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Select a location.");
+            var type = api.Type("CubeDef", "LocationDef");
+            var getter = api.Runtime.Method(type, "get_LocationDefId", false);
+            var find = api.Runtime.Method(api.Type("CubeDef", "LocationDefList"), "Find", true,
+                getter.ReturnType.Name, "System.Boolean");
+            var def = api.Runtime.Invoke(find, IntPtr.Zero, A.Value(api.Runtime.String(id)), A.Value(true));
+            if (def == IntPtr.Zero) throw new ArgumentException("Unknown location: " + id);
+            return api.Runtime.InvokeValue<IntPtr>(getter, def);
+        }
     }
 }

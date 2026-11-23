@@ -4,10 +4,21 @@ using System.Linq;
 
 namespace SnapLocalGameLab.Core
 {
+    internal enum LocalGameMode
+    {
+        Standard,
+        LocationWar,
+        HighVoltage,
+        ChampionArena
+    }
+
     internal sealed class LocalGameOptions
     {
+        public LocalGameMode Mode;
         public string League = "VsBalanceAi";
         public string AiPreset;
+        public string PlayerChampion;
+        public string OpponentChampion;
         public string PlayerDeck = "";
         public string AiDeck = "";
         public DeckEntry[] PlayerCards;
@@ -22,6 +33,15 @@ namespace SnapLocalGameLab.Core
         public int MaximumCubes = 8;
         public int SnapsPerPlayer = 1;
         public bool DoubleFinalTurn = true;
+
+        public string SelectedLeague => Mode switch
+        {
+            LocalGameMode.Standard => League,
+            LocalGameMode.LocationWar => "LocationWar",
+            LocalGameMode.HighVoltage => "HighVoltage",
+            LocalGameMode.ChampionArena => "ChampionArena",
+            _ => throw new ArgumentOutOfRangeException(nameof(Mode))
+        };
 
         public static byte[] ParseRandomKey(string text)
         {
@@ -45,7 +65,7 @@ namespace SnapLocalGameLab.Core
                 throw new ArgumentException("Set the count for each card instead of adding it twice.");
         }
 
-        public void ValidateSnapping()
+        public void Validate()
         {
             ValidateDeck(PlayerCards);
             ValidateDeck(AiCards);
@@ -53,6 +73,10 @@ namespace SnapLocalGameLab.Core
                 throw new ArgumentException("Choose either an integer seed or a random key.");
             if (RandomKey != null && RandomKey.Length != 16)
                 throw new ArgumentException("The random key must be exactly 16 bytes.");
+            if (Mode == LocalGameMode.ChampionArena
+                && (string.IsNullOrWhiteSpace(PlayerChampion) || string.IsNullOrWhiteSpace(OpponentChampion)))
+                throw new ArgumentException("Choose a champion for both players.");
+            if (Mode != LocalGameMode.Standard) return;
             if (StartingCubes < 1 || MaximumCubes < StartingCubes || MaximumCubes > 1000000)
                 throw new ArgumentException("Cubes must be between 1 and 1,000,000, with maximum at least the starting value.");
             if (EnableSnapping && MaximumCubes == StartingCubes)

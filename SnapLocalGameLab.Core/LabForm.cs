@@ -13,8 +13,11 @@ namespace SnapLocalGameLab.Core
         private readonly FlowLayoutPanel _buttons = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
         private readonly TextBox _log = new TextBox { Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Dock = DockStyle.Fill };
         private readonly Label _catalogStatus = Note("Loading the client catalog…");
+        private readonly ComboBox _mode = Choice("Standard", "Location War", "High Voltage", "Champion Arena");
+        private readonly SearchComboBox _playerChampion = Picker();
+        private readonly SearchComboBox _opponentChampion = Picker();
         private readonly ComboBox _league = Choice("VsAi", "VsBalanceAi", "AutoDoubleVsAI", "BattleVsAi", "VsAiBestLose", "VsAiWorstWin");
-        private readonly ComboBox _aiPreset = Choice("League default", "DoNothing", "Random", "RandomAfterOpponent",
+        private readonly ComboBox _aiPreset = Choice("Default AI", "DoNothing", "Random", "RandomAfterOpponent",
             "HiddenBeginner", "HiddenIntermediate", "HiddenExpert", "HiddenWorstWin", "HiddenBestLose");
         private readonly DeckInput _player;
         private readonly DeckInput _aiDeck;
@@ -92,13 +95,22 @@ namespace SnapLocalGameLab.Core
         {
             var layout = Page("Setup");
             var match = Section(layout, "Local match");
+            Row(match, "Mode", _mode);
             _league.SelectedItem = "VsBalanceAi";
-            Row(match, "Local league", _league);
+            var leagueRow = Table();
+            Row(leagueRow, "Local league", _league);
+            Row(match, "", leagueRow);
             Row(match, "AI preset", _aiPreset);
+            var modeHint = Note("");
+            Row(match, "", modeHint);
             Row(match, "", _skip);
             var decks = Section(layout, "Decks");
             Row(decks, "My deck", _player);
             Row(decks, "Opponent deck", _aiDeck);
+            var champions = Section(layout, "Champions");
+            Row(champions, "My champion", _playerChampion);
+            Row(champions, "Opponent champion", _opponentChampion);
+            Row(champions, "", Note("Each champion is added to a local copy of the chosen deck, replacing any existing champion cards."));
             var locationSection = Section(layout, "Starting locations");
             Row(locationSection, "", _overrideLocations);
             var locations = Table();
@@ -141,6 +153,23 @@ namespace SnapLocalGameLab.Core
             _snapping.CheckedChanged += (sender, args) => _snapsPerPlayer.Enabled = _snapping.Checked;
             Row(snapSection, "", rules);
             Toggle(advanced, rules);
+            void UpdateMode()
+            {
+                var standard = _mode.SelectedIndex == (int)LocalGameMode.Standard;
+                leagueRow.Visible = standard;
+                snapSection.Parent.Visible = standard;
+                champions.Parent.Visible = _mode.SelectedIndex == (int)LocalGameMode.ChampionArena;
+                modeHint.Visible = !standard;
+                modeHint.Text = (LocalGameMode)_mode.SelectedIndex switch
+                {
+                    LocalGameMode.LocationWar => "Fight for victory points at contested locations. Default AI: VsBalanceAi.",
+                    LocalGameMode.HighVoltage => "Short matches with extra energy and draws; snapping is disabled. Default AI: VsBalanceAi.",
+                    LocalGameMode.ChampionArena => "Choose a champion for each player and use their native abilities. Snapping is disabled. Default AI: VsBalanceAi.",
+                    _ => ""
+                };
+            }
+            _mode.SelectedIndexChanged += (sender, args) => UpdateMode();
+            UpdateMode();
             Row(layout, "Client catalog", _catalogStatus);
         }
 
@@ -299,12 +328,16 @@ namespace SnapLocalGameLab.Core
                 Fill(_drawCard, _catalog.Cards);
                 Fill(_spawnCard, _catalog.Cards);
                 Fill(_augment, _catalog.Augments);
+                Fill(_playerChampion, _catalog.Champions);
+                Fill(_opponentChampion, _catalog.Champions);
+                if (_playerChampion.SelectedIndex < 0 && _playerChampion.Items.Count > 0) _playerChampion.SelectedIndex = 0;
+                if (_opponentChampion.SelectedIndex < 0 && _opponentChampion.Items.Count > 0) _opponentChampion.SelectedIndex = 0;
                 Fill(_playerAvatar, new object[] { "Game default" }.Concat(_catalog.Avatars).ToArray());
                 Fill(_opponentAvatar, new object[] { "Game default" }.Concat(_catalog.Avatars).ToArray());
                 if (_playerAvatar.SelectedIndex < 0) _playerAvatar.SelectedIndex = 0;
                 if (_opponentAvatar.SelectedIndex < 0) _opponentAvatar.SelectedIndex = 0;
-                _catalogStatus.Text = $"{_catalog.Cards.Length} cards, {_catalog.Locations.Length} locations, {_catalog.Augments.Length} augments.";
-                Log("Loaded card, location, augment and avatar lists from the running client.");
+                _catalogStatus.Text = $"{_catalog.Cards.Length} cards, {_catalog.Locations.Length} locations, {_catalog.Augments.Length} augments, {_catalog.Champions.Length} champions.";
+                Log("Loaded card, location, augment, avatar and champion lists from the running client.");
             }
             catch
             {
@@ -347,6 +380,11 @@ namespace SnapLocalGameLab.Core
             if (_seedMode.SelectedIndex == 2) key = LocalGameOptions.ParseRandomKey(_seed.Text);
             var options = new LocalGameOptions
             {
+                Mode = (LocalGameMode)_mode.SelectedIndex,
+                PlayerChampion = _mode.SelectedIndex == (int)LocalGameMode.ChampionArena
+                    ? Selected<CatalogItem>(_playerChampion, "your champion").Id : null,
+                OpponentChampion = _mode.SelectedIndex == (int)LocalGameMode.ChampionArena
+                    ? Selected<CatalogItem>(_opponentChampion, "the opponent's champion").Id : null,
                 League = (string)_league.SelectedItem, PlayerDeck = _player.Code, AiDeck = _aiDeck.Code,
                 AiPreset = _aiPreset.SelectedIndex == 0 ? null : (string)_aiPreset.SelectedItem,
                 PlayerCards = _player.ManualCards, AiCards = _aiDeck.ManualCards,

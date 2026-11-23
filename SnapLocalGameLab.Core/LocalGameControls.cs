@@ -92,12 +92,8 @@ namespace SnapLocalGameLab.Core
         {
             if (locationIndex < 0 || locationIndex > 2)
                 throw new ArgumentException("Choose one of the three locations.");
-            if (string.IsNullOrWhiteSpace(locationId)) throw new ArgumentException("Select a location.");
             var api = match.Api;
-            var def = api.Call(api.Type("CubeDef", "LocationDefList"), IntPtr.Zero, "Find",
-                A.Value(api.Runtime.String(locationId)), A.Value(true));
-            if (def == IntPtr.Zero) throw new ArgumentException("Unknown location: " + locationId);
-            var id = api.Value<IntPtr>(api.Type("CubeDef", "LocationDef"), def, "get_LocationDefId");
+            var id = GameCatalog.LocationId(api, locationId);
             match.Send("SpawnLocationCheatRequest", (type, request) =>
             {
                 api.Call(type, request, "set_LocationDefId", A.Value(id));
@@ -115,12 +111,7 @@ namespace SnapLocalGameLab.Core
             var cards = kinds.SelectMany(match.Cards).Distinct().Where(c => players.Contains(match.Owner(c))).ToArray();
             var locationId = IntPtr.Zero;
             if (cleanup == CleanupTarget.Everything)
-            {
-                var def = api.Call(api.Type("CubeDef", "LocationDefList"), IntPtr.Zero, "Find",
-                    A.Value(api.Runtime.String("Ruins")), A.Value(true));
-                if (def == IntPtr.Zero) throw new InvalidOperationException("The client does not contain the Ruins location.");
-                locationId = api.Value<IntPtr>(api.Type("CubeDef", "LocationDef"), def, "get_LocationDefId");
-            }
+                locationId = GameCatalog.LocationId(api, "Ruins");
             foreach (var card in cards)
             {
                 var id = match.EntityId(card);

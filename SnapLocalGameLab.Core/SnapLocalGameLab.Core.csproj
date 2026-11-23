@@ -54,6 +54,9 @@
     <Compile Include="LocalGameOptions.cs" />
     <Compile Include="LocalGameService.cs" />
     <Compile Include="LocalGameInitialization.cs" />
+    <Compile Include="LocalGameModePresentation.cs" />
+    <Compile Include="ChampionArenaSetup.cs" />
+    <Compile Include="ChampionArenaPresentation.cs" />
     <Compile Include="SnapConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>

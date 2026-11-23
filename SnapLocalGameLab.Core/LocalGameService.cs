@@ -10,7 +10,7 @@ namespace SnapLocalGameLab.Core
     {
         public static string Start(LocalGameOptions options)
         {
-            options.ValidateSnapping();
+            options.Validate();
             using (var api = new GameApi())
             {
                 var managerType = api.Type("CubeUnity.App.State", "GameManager");
@@ -18,8 +18,9 @@ namespace SnapLocalGameLab.Core
                 var sceneType = api.Type("CubeUnity.App.Scene", "CubeSceneManager");
                 var sceneManager = api.Manager(sceneType);
                 RequireHomeScreen(api, sceneType, sceneManager);
-                var league = api.EnumValue(api.Type("CubeDef", "LeagueDefId"), options.League);
-                ValidateLeague(api, league);
+                var league = api.EnumValue(api.Type("CubeDef", "LeagueDefId"), options.SelectedLeague);
+                var config = SnapConfiguration.Create(api, SnapConfiguration.Find(api, league), options);
+                var champions = options.Mode == LocalGameMode.ChampionArena ? new ChampionArenaSetup(api, config, options) : null;
                 var playerDeck = options.PlayerCards == null ? DecodeDeck(api, options.PlayerDeck) : CreateDeck(api, options.PlayerCards);
                 var aiDeck = options.AiCards == null ? DecodeDeck(api, options.AiDeck) : CreateDeck(api, options.AiCards);
                 var locations = CreateLocations(api, managerType, options.Locations);
@@ -30,6 +31,7 @@ namespace SnapLocalGameLab.Core
                     throw new NotSupportedException("Unexpected GameManager.Initialize signature.");
                 var load = api.Method(sceneType, "ForceLoadPrimaryScene", 3);
                 LocalGameInitialization.Prepare(api, options.Seed.HasValue || options.RandomKey != null);
+                LocalGameModePresentation.Prepare(api, options.Mode);
                 api.Runtime.Invoke(initialize, manager, A.Value(0), A.Value(league),
                     api.Default(parameters[2]), A.Ref(api.Runtime.String("Play")));
                 api.Call(managerType, manager, "set_DebugOverrideSelectedDeck", A.Ref(playerDeck));
@@ -37,14 +39,23 @@ namespace SnapLocalGameLab.Core
                 api.Call(managerType, manager, "set_DebugStartingLocations", A.Ref(locations));
                 api.Call(managerType, manager, "set_DebugNoPostGameRewards", A.Value(true));
                 api.Call(managerType, manager, "set_DebugIgnoreNewCardEncountered", A.Value(options.SkipNewCardPrompts));
-                LocalGameInitialization.Arm(manager, options);
                 try
                 {
+                    LocalGameInitialization.Arm(manager, config, options);
+                    champions?.PrepareDecks(api, manager, league);
+                    LocalGameModePresentation.Activate(manager, options);
                     api.Runtime.Invoke(load, sceneManager, A.Ref(api.Runtime.String("Game")), A.Value(1), A.Ref(IntPtr.Zero));
                 }
-                catch { LocalGameInitialization.Cancel(); throw; }
-                return "Local " + options.League + " loading"
-                    + (string.IsNullOrWhiteSpace(options.AiPreset) ? "." : " with AI preset " + options.AiPreset + ".");
+                catch
+                {
+                    LocalGameInitialization.Cancel();
+                    LocalGameModePresentation.Reset();
+                    throw;
+                }
+                return "Local " + options.SelectedLeague + " loading"
+                    + (string.IsNullOrWhiteSpace(options.AiPreset)
+                        ? options.Mode == LocalGameMode.Standard ? "." : " with the VsBalanceAi default AI and native mode rules."
+                        : " with AI preset " + options.AiPreset + ".");
             }
         }
 
@@ -58,6 +69,7 @@ namespace SnapLocalGameLab.Core
                 LocalGameControls.RestoreTiming(api);
                 api.Call(sceneType, sceneManager, "ForceLoadPrimaryScene",
                     A.Ref(api.Runtime.String("Play")), A.Value(1), A.Ref(IntPtr.Zero));
+                LocalGameModePresentation.Reset();
                 return "Returning to main screen.";
             }
         }
@@ -70,18 +82,6 @@ namespace SnapLocalGameLab.Core
             var scene = api.Type("UnityEngine.SceneManagement", "Scene");
             var name = api.Runtime.StringValue(api.Call(scene, IntPtr.Zero, "GetNameInternal", A.Value(handle)));
             if (name != "Play") throw new InvalidOperationException("Return to the Play/home screen before starting a local game. Current scene: " + name);
-        }
-
-        private static void ValidateLeague(GameApi api, int league)
-        {
-            var list = api.Type("CubeDef", "GameConfigDefList");
-            var eventIds = api.Runtime.NestedClass(api.Type("CubeDef", "LimitedEventDef"), "Id");
-            var eventIdType = api.Runtime.Method(eventIds, "Get", true, "System.String").ReturnType;
-            var find = api.Runtime.Method(list, "Find", true, "CubeDef.LeagueDefId", eventIdType.Name);
-            var config = api.Runtime.Invoke(find, IntPtr.Zero, A.Value(league), api.Default(find.GetParameters()[1]));
-            var type = api.Runtime.ClassFromType(find.ReturnType);
-            if (config == IntPtr.Zero || !api.Value<bool>(type, config, "get_IsAiGame"))
-                throw new InvalidOperationException("The selected league is not configured as a local AI game.");
         }
 
         private static IntPtr DecodeDeck(GameApi api, string text)
@@ -108,7 +108,7 @@ namespace SnapLocalGameLab.Core
             }
         }
 
-        private static IntPtr CreateDeck(GameApi api, DeckEntry[] cards)
+        public static IntPtr CreateDeck(GameApi api, DeckEntry[] cards)
         {
             LocalGameOptions.ValidateDeck(cards);
             var idFactory = api.Runtime.NestedClass(api.Type("CubeDef", "CardDef"), "Id");
@@ -141,14 +141,9 @@ namespace SnapLocalGameLab.Core
             var setter = api.Method(manager, "set_DebugStartingLocations", 1);
             var listType = api.Runtime.ClassFromType(setter.GetParameters()[0]);
             var list = api.New(listType);
-            var defs = api.Type("CubeDef", "LocationDefList");
             foreach (var name in names)
             {
-                var id = A.Value(api.Runtime.String(name));
-                var def = api.Call(defs, IntPtr.Zero, "Find", id, A.Value(true));
-                if (def == IntPtr.Zero) throw new ArgumentException("Unknown location: " + name);
-                var defType = api.Type("CubeDef", "LocationDef");
-                var canonical = api.Value<IntPtr>(defType, def, "get_LocationDefId");
+                var canonical = GameCatalog.LocationId(api, name);
                 api.Call(listType, list, "Add", A.Value(canonical));
             }
             return list;
